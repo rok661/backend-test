@@ -24,13 +24,13 @@ public class LockManagerTest {
 
     Runnable threadRunable = () -> {
       String threadName = Thread.currentThread().getName();
-      logger.debug("started thread " + threadName);
+      logger.debug("started thread {}", threadName);
 
       //Executes thread and change count value
       Runnable task = () -> {
         int countValue = countCheck.getCount();
         countCheck.setValue(countValue + 1);
-        logger.debug("Tread " + threadName + " count:" + countCheck.getCount());
+        logger.debug("Tread {} count: {}", threadName, countCheck.getCount());
       };
 
       lockManager.executeLockedResource(BigDecimal.valueOf(1), task);
@@ -40,7 +40,7 @@ public class LockManagerTest {
     for (int i = 0; i < 10; i++) {
       Thread thread = new Thread(threadRunable);
       threads.add(thread);
-      logger.debug("Starting thread:" + i);
+      logger.debug("Starting thread: {}", i);
       thread.start();
     }
 
@@ -58,12 +58,12 @@ public class LockManagerTest {
 
     Runnable threadRunable = () -> {
       String threadName = Thread.currentThread().getName();
-      logger.debug("started thread " + threadName);
+      logger.debug("started thread {}", threadName);
 
       Runnable task = () -> {
         int newValue = countCheck.getCount() + 1;
         countCheck.setValue(newValue);
-        logger.debug("Tread " + threadName + " count:" + countCheck.getCount());
+        logger.debug("Tread {} count: {}", threadName, countCheck.getCount());
       };
 
       lockManager.executeLockedResources(BigDecimal.valueOf(1), BigDecimal.valueOf(2), task);
@@ -73,7 +73,7 @@ public class LockManagerTest {
     for (int i = 0; i < 10; i++) {
       Thread thread = new Thread(threadRunable);
       threads.add(thread);
-      logger.debug("Starting thread:" + i);
+      logger.debug("Starting thread: {}", i);
       thread.start();
     }
 

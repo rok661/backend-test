@@ -36,7 +36,6 @@ public class MoneyTransferServiceImplMultiThreadTest {
     moneyTransferService = AppInjector.getInstance().getInstance(MoneyTransferService.class);
     accountService = AppInjector.getInstance().getInstance(AccountService.class);
 
-    Account account1, account2;
     account1 = Account.builder()
         .accountCurrency(AccountCurrency.valueOf("EUR"))
         .balance(BigDecimal.valueOf(1000))
@@ -59,7 +58,7 @@ public class MoneyTransferServiceImplMultiThreadTest {
 
     Runnable threadRunable = () -> {
       String threadName = Thread.currentThread().getName();
-      logger.debug("started thread " + threadName);
+      logger.debug("started thread {} ", threadName);
       TransactionRequest transactionRequest = new TransactionRequest(threadName, BigDecimal.valueOf(10), "EUR");
       moneyTransferService.transfer(account1, account2, transactionRequest);
     };
@@ -77,8 +76,8 @@ public class MoneyTransferServiceImplMultiThreadTest {
       thread.join(5000);
     }
 
-    Account account1After = accountService.findAccountByIban(account1.getIban()).get();
-    Account account2After = accountService.findAccountByIban(account2.getIban()).get();
+    Account account1After = accountService.findAccountByIban(account1.getIban()).orElseThrow(()-> new RuntimeException("account in test not found"));
+    Account account2After = accountService.findAccountByIban(account2.getIban()).orElseThrow(()-> new RuntimeException("account in test not found"));
 
     assertEquals(BigDecimal.valueOf(900), account1After.getBalance());
     assertEquals(BigDecimal.valueOf(1100), account2After.getBalance());

@@ -22,6 +22,9 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Multithreaded test using Rest Assured to demonstrate safe transfers.
+ */
 public class AccountsControllerMultiThreadTest {
 
   private static final Logger logger = LoggerFactory.getLogger(AccountsControllerMultiThreadTest.class);

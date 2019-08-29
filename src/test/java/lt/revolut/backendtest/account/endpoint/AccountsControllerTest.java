@@ -17,6 +17,9 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+/**
+ * Some key additional success tests for API other than money transfer-to between accounts
+ */
 public class AccountsControllerTest {
 
   private static final String TRANS_NAME = "test transaction";
@@ -96,6 +99,38 @@ public class AccountsControllerTest {
         .contentType(ContentType.JSON)
         .when()
         .request("POST", "/restapi/v1/accounts/MD21EX000000000001234567/credit")
+        .then()
+        .statusCode(200);
+  }
+
+  @Test
+  public void debitSuccess() {
+    AccountRequest account1 = AccountRequest.builder()
+        .accountCurrency("EUR")
+        .ibanCode("RS35105008123123123173")
+        .beneficiary("Test user1")
+        .build();
+
+    with().body(account1)
+        .contentType(ContentType.JSON)
+        .when()
+        .request("POST", "/restapi/v1/accounts")
+        .then()
+        .statusCode(200);
+
+    TransactionRequest transactionRequest = new TransactionRequest(TRANS_NAME, BigDecimal.valueOf(1000), "EUR");
+    with().body(transactionRequest)
+        .contentType(ContentType.JSON)
+        .when()
+        .request("POST", "/restapi/v1/accounts/RS35105008123123123173/credit")
+        .then()
+        .statusCode(200);
+
+    TransactionRequest transactionRequestDebit = new TransactionRequest(TRANS_NAME, BigDecimal.valueOf(200), "EUR");
+    with().body(transactionRequestDebit)
+        .contentType(ContentType.JSON)
+        .when()
+        .request("POST", "/restapi/v1/accounts/RS35105008123123123173/debit")
         .then()
         .statusCode(200);
   }

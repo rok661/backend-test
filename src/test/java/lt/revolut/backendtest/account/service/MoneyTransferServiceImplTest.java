@@ -14,7 +14,9 @@ import lt.revolut.backendtest.common.exception.AppValidationException;
 import lt.revolut.backendtest.common.exception.CurrencyException;
 import lt.revolut.backendtest.common.properties.SystemProperties;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 public class MoneyTransferServiceImplTest {
 
@@ -22,6 +24,9 @@ public class MoneyTransferServiceImplTest {
 
   private MoneyTransferService moneyTransferService;
   private AccountService accountService;
+
+  @Rule
+  public ExpectedException expectedEx = ExpectedException.none();
 
   @Before
   public void setUp() {
@@ -45,12 +50,15 @@ public class MoneyTransferServiceImplTest {
     TransactionRequest transactionRequest = new TransactionRequest(TRANS_NAME, BigDecimal.valueOf(45.55), "EUR");
     moneyTransferService.credit(account1, transactionRequest);
 
-    Account updatedAccount = accountService.findAccountByIban(Iban.valueOf("HR1723600001101234565")).get();
+    Account updatedAccount = accountService.findAccountByIban(Iban.valueOf("HR1723600001101234565")).orElseThrow(()-> new RuntimeException("account in test not found"));
     assertEquals(BigDecimal.valueOf(45.55), updatedAccount.getBalance());
   }
 
-  @Test(expected = AppValidationException.class)
+  @Test
   public void creditFailNegativeAmountInTransaction() {
+    expectedEx.expect(AppValidationException.class);
+    expectedEx.expectMessage("amount should be greater than 0");
+
     Account account1 = Account.builder()
         .accountId(BigDecimal.valueOf(1))
         .accountCurrency(AccountCurrency.valueOf("EUR"))
@@ -76,12 +84,15 @@ public class MoneyTransferServiceImplTest {
     TransactionRequest transactionRequest = new TransactionRequest(TRANS_NAME, BigDecimal.valueOf(10.5), "EUR");
     moneyTransferService.debit(account1, transactionRequest);
 
-    Account updatedAccount = accountService.findAccountByIban(Iban.valueOf("AZ96AZEJ00000000001234567890")).get();
+    Account updatedAccount = accountService.findAccountByIban(Iban.valueOf("AZ96AZEJ00000000001234567890")).orElseThrow(()-> new RuntimeException("account in test not found"));
     assertEquals(BigDecimal.valueOf(89.5), updatedAccount.getBalance());
   }
 
-  @Test(expected = AppValidationException.class)
+  @Test
   public void debitFailNotEnoughFunds() {
+    expectedEx.expect(AppValidationException.class);
+    expectedEx.expectMessage("Account from iban BE71096123456769 is having not enough funds balance to make a money transfer. Missing balance is -1,00");
+
     Account account1 = Account.builder()
         .accountCurrency(AccountCurrency.valueOf("EUR"))
         .balance(BigDecimal.valueOf(100))
@@ -115,15 +126,18 @@ public class MoneyTransferServiceImplTest {
     TransactionRequest transactionRequest = new TransactionRequest(TRANS_NAME, BigDecimal.valueOf(45.55), "EUR");
     moneyTransferService.transfer(account1, account2, transactionRequest);
 
-    Account updatedAccount1 = accountService.findAccountByIban(Iban.valueOf("AD1400080001001234567890")).get();
-    Account updatedAccount2 = accountService.findAccountByIban(Iban.valueOf("AT483200000012345864")).get();
+    Account updatedAccount1 = accountService.findAccountByIban(Iban.valueOf("AD1400080001001234567890")).orElseThrow(()-> new RuntimeException("account in test not found"));
+    Account updatedAccount2 = accountService.findAccountByIban(Iban.valueOf("AT483200000012345864")).orElseThrow(()-> new RuntimeException("account in test not found"));
 
     assertEquals(BigDecimal.valueOf(54.45), updatedAccount1.getBalance());
     assertEquals(BigDecimal.valueOf(245.55), updatedAccount2.getBalance());
   }
 
-  @Test(expected = AppValidationException.class)
+  @Test
   public void transferFailNotEnoughFunds() {
+    expectedEx.expect(AppValidationException.class);
+    expectedEx.expectMessage("Account from iban BH02CITI00001077181611 is having not enough funds balance to make a money transfer. Missing balance is -0,55");
+
     Account account1 = Account.builder()
         .accountCurrency(AccountCurrency.valueOf("EUR"))
         .balance(BigDecimal.valueOf(45))
@@ -135,7 +149,7 @@ public class MoneyTransferServiceImplTest {
     Account account2 = Account.builder()
         .accountCurrency(AccountCurrency.valueOf("EUR"))
         .balance(BigDecimal.valueOf(200))
-        .iban(Iban.valueOf("BY86AKBB10100000002966000000"))
+        .iban(Iban.valueOf("ES7921000813610123456789"))
         .beneficiary("Test user2")
         .build();
     account2 = accountService.createAccount(account2);
@@ -144,8 +158,11 @@ public class MoneyTransferServiceImplTest {
     moneyTransferService.transfer(account1, account2, transactionRequest);
   }
 
-  @Test(expected = CurrencyException.class)
+  @Test
   public void transferFailMisMatchCurrencyInAccounts() {
+    expectedEx.expect(CurrencyException.class);
+    expectedEx.expectMessage("Account CZ5508000000001234567899 holds USD currency, but money transaction requested EUR");
+
     Account account1 = Account.builder()
         .accountCurrency(AccountCurrency.valueOf("USD"))
         .balance(BigDecimal.valueOf(45))
@@ -166,8 +183,11 @@ public class MoneyTransferServiceImplTest {
     moneyTransferService.transfer(account1, account2, transactionRequest);
   }
 
-  @Test(expected = CurrencyException.class)
+  @Test
   public void transferFailMisMatchCurrencyInTransfer() {
+    expectedEx.expect(CurrencyException.class);
+    expectedEx.expectMessage("Account CZ5508000000001234567899 holds EUR currency, but money transaction requested USD");
+
     Account account1 = Account.builder()
         .accountCurrency(AccountCurrency.valueOf("EUR"))
         .balance(BigDecimal.valueOf(45))
@@ -187,4 +207,5 @@ public class MoneyTransferServiceImplTest {
     TransactionRequest transactionRequest = new TransactionRequest(TRANS_NAME, BigDecimal.valueOf(10), "USD");
     moneyTransferService.transfer(account1, account2, transactionRequest);
   }
+
 }

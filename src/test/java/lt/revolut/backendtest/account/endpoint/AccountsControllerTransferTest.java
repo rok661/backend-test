@@ -2,6 +2,7 @@ package lt.revolut.backendtest.account.endpoint;
 
 import static io.restassured.RestAssured.get;
 import static io.restassured.RestAssured.with;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertEquals;
 
 import io.restassured.http.ContentType;
@@ -18,6 +19,9 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+/**
+ * Some helper API tests used for other services than money transfer between accounts.
+ */
 public class AccountsControllerTransferTest {
 
   private static String TRANS_NAME = "Test transaction";
@@ -77,6 +81,7 @@ public class AccountsControllerTransferTest {
   @Test
   public void transferSuccess() {
     TransactionRequest transactionRequest = new TransactionRequest(TRANS_NAME, BigDecimal.valueOf(10), "EUR");
+
     with().body(transactionRequest)
         .contentType(ContentType.JSON)
         .when()
@@ -110,7 +115,8 @@ public class AccountsControllerTransferTest {
         .when()
         .request("POST", "/restapi/v1/accounts/BA393385804800211234/transfer-to/CZ5508000000001234567899")
         .then()
-        .statusCode(404);
+        .statusCode(404)
+        .body("message", equalTo("Account with iban BA393385804800211234 not found"));
   }
 
   @Test
@@ -122,7 +128,8 @@ public class AccountsControllerTransferTest {
         .when()
         .request("POST", "/restapi/v1/accounts/LT601010012345678901/transfer-to/BA393385804800211234")
         .then()
-        .statusCode(400);
+        .statusCode(400)
+        .body("message", equalTo("amount should be greater than 0"));
   }
 
   @Test
@@ -134,7 +141,8 @@ public class AccountsControllerTransferTest {
         .when()
         .request("POST", "/restapi/v1/accounts/LT601010012345678901/transfer-to/BA393385804800211234")
         .then()
-        .statusCode(400);
+        .statusCode(400)
+        .body("message", equalTo("amount should be greater than 0"));
   }
 
 
@@ -147,7 +155,8 @@ public class AccountsControllerTransferTest {
         .when()
         .request("POST", "/restapi/v1/accounts/LT601010012345678901/transfer-to/BA393385804800211234")
         .then()
-        .statusCode(400);
+        .statusCode(400)
+        .body("message", equalTo("Account LT601010012345678901 holds EUR currency, but money transaction requested USD"));
   }
 
   @Test
@@ -173,6 +182,7 @@ public class AccountsControllerTransferTest {
         .when()
         .request("POST", "/restapi/v1/accounts/LT601010012345678901/transfer-to/AD1400080001001234567890")
         .then()
-        .statusCode(400);
+        .statusCode(400)
+        .body("message", equalTo("Account AD1400080001001234567890 holds USD currency, but money transaction requested EUR"));
   }
 }
