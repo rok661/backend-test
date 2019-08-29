@@ -7,8 +7,10 @@ API integration tests used:
 * AccountsControllerMultiThreadTest - multithreaded test using Rest Assured to demonstrate safe transfers.
 * AccountsControllerTransferTest - key transfer logic tests.
 * AccountsController - some helper API tests used for other services than *transfer*.
-Business logic key tests:
-* LockManagerTest - checks locks manager functionality.
+Key Business logic tests:
+* LockManagerTest - checks LockManager functionality.
+* MoneyTransferServiceImplTest - tests implemented for money transfer on service level.
+* MoneyTransferServiceImplMultiThreadTest - multi-threaded test intended to check transfer between accounts service.
 ## How to run application
 
 ### How to compile
@@ -16,7 +18,7 @@ Business logic key tests:
 mvn clean install
 ```
 ### Tests
-Running separately tests:
+All tests executed during mvn clean install, but it possible to run separatelly:
 ```$xslt
 mvn test
 ```
